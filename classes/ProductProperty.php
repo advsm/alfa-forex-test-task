@@ -43,7 +43,7 @@ class ProductProperty extends DbModel
     /**
      * Возвращает массив, в которой ключем является название группы, а значением ассоциативный массив из свойств.
      *
-     * ex: 'Операционная система' => array(1 => 'IOS', 2 => 'Android')
+     * ex: 'Операционная система' => array('IOS' => 1, 'Android' => 2)
      * @return array
      */
     public function fetchAll()
@@ -59,7 +59,25 @@ class ProductProperty extends DbModel
     }
 
     /**
-     * Возвращает список товаров, содержащих все перечисленные свойства.
+     * Возвращает массив из всех IDшников возможных значений атрибутов.
+     *
+     * @return array
+     */
+    public function getAllPropertyIds()
+    {
+        $compiled = array();
+
+        $values = $this->getConnection()->fetchAll("SELECT `id` FROM `product_property_value`");
+
+        foreach ($values as $value) {
+            $compiled[] =  $value['id'];
+        }
+
+        return $compiled;
+    }
+
+    /**
+     * Возвращает список IDшников товаров, содержащих все перечисленные свойства.
      *
      * Данный запрос требует дополнительного объяснения.
      * Он выбирает из товаров все те, у которых есть совпадения по переданным аттрибутам,
@@ -71,9 +89,9 @@ class ProductProperty extends DbModel
      * при помощи having count.
      *
      * @param array $properties Массив из `product_property_value`.`id`
-     * @return array Ассоциативный массив, name + price.
+     * @return array Массив ID товаров.
      */
-    public function getProductContainingProperties($properties)
+    public function getProductIdsContainingProperties($properties)
     {
         /**
          * @var $stmt Doctrine\DBAL\Driver\PDOStatement
@@ -89,11 +107,55 @@ class ProductProperty extends DbModel
             array(\Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
         );
 
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $ids  = array();
+        foreach ($rows as $row) {
+            $ids[] = $row['id'];
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Возвращает список товаров (со всей информацией и свойствами), содержащих все перечисленные свойства.
+     *
+     * @param array $properties Массив из `product_property_value`.`id`
+     * @return array Ассоциативный массив, name + price + properties.
+     */
+    public function getProductContainingProperties($properties)
+    {
+        $products = $this->getProductIdsContainingProperties($properties);
 
         $compiled = array();
         foreach ($products as $product) {
-            $compiled[] = $this->getProductInfo($product['id']);
+            $compiled[] = $this->getProductInfo((int) $product);
+        }
+
+        return $compiled;
+    }
+
+    /**
+     * Возвращает массив из IDшников свойств товаров, соотвествующих переданным товарам.
+     *
+     * @param array $productIds
+     * @return array
+     */
+    public function getPropertyIdsByProductIds($productIds)
+    {
+        $stmt = $this->getConnection()->executeQuery(
+            "SELECT DISTINCT `product_property_value`.`id` FROM `product_property_value`
+                JOIN `product2property`
+                    ON `product2property`.`property_value_id` = `product_property_value`.`id`
+                WHERE `product2property`.`product_id` IN (?)",
+            array($productIds),
+            array(\Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
+        );
+
+        $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $compiled = array();
+        foreach ($properties as $property) {
+            $compiled[] = $property['id'];
         }
 
         return $compiled;

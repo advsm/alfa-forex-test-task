@@ -7,7 +7,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 
-define('BASE_PATH', realpath('../'));
+define('BASE_PATH', realpath(__DIR__ . '/../'));
 require_once BASE_PATH . '/vendor/autoload.php';
 require_once BASE_PATH . '/classes/ProductProperty.php';
 
@@ -54,6 +54,24 @@ $app->get('/', function (Request $request) use ($app) {
         'products'     => $products,
         'searchParams' => $searchParams,
     ));
+});
+
+/**
+ * Контроллер, возвращающий актуальные свойства, учитывая уже отмеченные.
+ */
+$app->get('/get-actual-properties', function(Request $request) use ($app) {
+    $products = array();
+
+    $productProperty = new ProductProperty($app['db']);
+    $propertyIds = $productProperty->getAllPropertyIds();
+
+    $searchParams = $request->get('search');
+    if ($searchParams) {
+        $productIds  = $productProperty->getProductIdsContainingProperties($searchParams);
+        $propertyIds = $productProperty->getPropertyIdsByProductIds($productIds);
+    }
+
+    return $app->json(array('ids' => $propertyIds));
 });
 
 $app->run();
