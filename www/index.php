@@ -39,7 +39,7 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
  * Register index controller.
  */
 $app->get('/', function (Request $request) use ($app) {
-    $products = [];
+    $products = array();
 
     $productProperty = new ProductProperty($app['db']);
     $properties = $productProperty->fetchAll();

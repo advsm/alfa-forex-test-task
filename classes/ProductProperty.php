@@ -26,7 +26,7 @@ class ProductProperty extends DbModel
      */
     public function fetchValuesByGroup($groupId)
     {
-        $compiled = [];
+        $compiled = array();
 
         $values = $this->getConnection()->fetchAll(
             "SELECT `id`, `value` FROM `product_property_value` WHERE `group_id` = ?",
@@ -48,7 +48,7 @@ class ProductProperty extends DbModel
      */
     public function fetchAll()
     {
-        $compiled = [];
+        $compiled = array();
 
         $groups = $this->fetchGroups();
         foreach ($groups as $group) {
@@ -80,7 +80,7 @@ class ProductProperty extends DbModel
 
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $compiled = [];
+        $compiled = array();
         foreach ($products as $product) {
             $compiled[] = $this->getProductInfo($product['id']);
         }
@@ -124,7 +124,7 @@ class ProductProperty extends DbModel
             array((int) $productId)
         );
 
-        $compiled = [];
+        $compiled = array();
         foreach ($properties as $property) {
             $compiled[ $property['name'] ] = $property['value'];
         }
