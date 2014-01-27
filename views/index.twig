@@ -1,0 +1,99 @@
+<html>
+<head>
+    <title>Тестовое задание Alfa-Forex</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled JQuery (required by Bootstrap) -->
+    <script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+    <style>
+        .bs-callout {
+            margin: 20px 0;
+            padding: 20px;
+            border-left: 3px solid #eee;
+        }
+        .bs-callout-info {
+            background-color: #f4f8fa;
+            border-color: #bce8f1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="starter-template">
+        <h1>Параметрический поиск</h1>
+        <h2>Тестовое задание от Alfa-Forex</h2>
+
+        <p class="lead">
+            <table class="table table-hover">
+                <tr><td>
+                    Ваша задача создать базу данных, объектные сущности, а также саму страницу интернет магазина, отвечающую за параметрический поиск и выдачу результатов.
+                </td></tr>
+                <tr><td>
+                    В верхней части страницы должен иметься список параметров (реальные параметры товаров), разделенных на категории. Ниже должен иметься список результатов поиска. Результаты поиска содержат название товара и все его характеристики.
+                </td></tr>
+                 <tr><td>
+                    Поиск производится при нажатии на кнопку «искать».
+                </td></tr>
+                <tr><td>
+                    Для упрощения выполнения задания, параметры сделать только в виде checkbox’ов.
+                </td></tr>
+                <tr><td>
+                    Результаты поиска должны соответствовать выбранным параметрам.
+                </td></tr>
+                <tr><td>
+                    Вы можете изменять характеристики товаров, добавлять собственные товары и характеристики для удобства тестирования страницы.
+                </td></tr>
+                <tr><td>
+                    Параметры передаются через форму, по средствам GET запросов.
+                </td></tr>
+            </table>
+        </p>
+
+        <hr />
+
+        <h3>Форма поиска товаров:</h3>
+        <form method='GET' role="form">
+            {% for name, values in properties %}
+                <div class='form-group'>
+                    <p class="lead">{{ name }}:</p>
+
+                    {% for key, value in values %}
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="search[]" value="{{ key }}"
+                                {% if key in searchParams %}checked="checked"{% endif %}> {{ value }}
+                        </label>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <input type='submit' value='Искать' class="btn btn-primary btn-lg" />
+        </form>
+
+        <hr />
+
+        {% for product in products %}
+            <div class="bs-callout bs-callout-info">
+                <h4>{{ product.name }}</h4>
+                <ul>
+                    <li><b>Цена:</b> {{ product.price }} рублей</li>
+                    {% for propertyName, propertyValue in product.properties %}
+                        <li><b>{{ propertyName }}:</b> {{ propertyValue }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>
