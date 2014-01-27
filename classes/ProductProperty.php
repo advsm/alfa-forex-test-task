@@ -61,6 +61,15 @@ class ProductProperty extends DbModel
     /**
      * Возвращает список товаров, содержащих все перечисленные свойства.
      *
+     * Данный запрос требует дополнительного объяснения.
+     * Он выбирает из товаров все те, у которых есть совпадения по переданным аттрибутам,
+     * а чтобы отфильтровать товары, у которых совпали не все аттрибуты, использует группировку.
+     *
+     * При inner join товар появится в запросе столько раз, сколько переданных аттрибутов у него есть.
+     * В итоге нам нужно только посчитать сколько раз появился товар при помощи group by,
+     * и отфильтровать те товары, которые появились меньшее количество раз, чем количество переданных аттрибутов
+     * при помощи having count.
+     *
      * @param array $properties Массив из `product_property_value`.`id`
      * @return array Ассоциативный массив, name + price.
      */
@@ -70,10 +79,12 @@ class ProductProperty extends DbModel
          * @var $stmt Doctrine\DBAL\Driver\PDOStatement
          */
         $stmt = $this->getConnection()->executeQuery(
-            "SELECT DISTINCT `product`.`id` FROM `product`
+            "SELECT `product`.`id` FROM `product`
                 JOIN `product2property`
                     ON `product2property`.`product_id` = `product`.`id`
-                WHERE `product2property`.`property_value_id` IN (?)",
+                WHERE `product2property`.`property_value_id` IN (?)
+                GROUP BY `product`.`id`
+                HAVING COUNT(`product`.`id`) = " . count($properties),
             array($properties),
             array(\Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
         );
